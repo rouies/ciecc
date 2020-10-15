@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="test_demo" xmlns="http://louis.com/workflow"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://louis.com/workflow workflow.xsd">
+
+	<state type="begin" id="C00000001">
+		<initialize>
+			<call-method bean="testService" method="test" types="java.lang.String" arguments="name" result="res"/>
+		</initialize>
+		<target to="C00000002">
+			<![CDATA[name=='zhangsan']]>
+		</target>
+		<target to="C00000003">
+			<![CDATA[name=='lisi']]>
+		</target>
+	</state>
+	
+	<state type="process" id="C00000002">
+		<initialize>
+			<call-method bean="testService" method="test" types="java.lang.String" arguments="'execute 2'" result="res"/>
+		</initialize>
+		<target to="C00000004"/>
+	</state>
+	
+	<state type="process" id="C00000003">
+		<initialize>
+			<call-method bean="testService" method="test" types="java.lang.String" arguments="'changed 3'" result="res"/>
+		</initialize>
+		<target to="C00000004"/>
+	</state>
+	
+	<state type="process" id="C00000004">
+		<initialize>
+			<call-method bean="testService" method="test" types="java.lang.String" arguments="'changed 4'" result="res"/>
+		</initialize>
+		<target to="C00000005"/>
+	</state>
+	
+	<state type="end" id="C00000005">
+		<initialize>
+			<call-method bean="testService" method="test" types="java.lang.String" arguments="'changed 5'"/>
+		</initialize>
+	</state>
+
+</workflow>

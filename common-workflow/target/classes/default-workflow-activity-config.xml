@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration  xmlns="http://louis.com/workflow-activity-config"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://louis.com/workflow-activity-config workflow-activity-config.xsd">
+	<!-- 状态活动 -->
+	<activity name="call-method" class="com.ciecc.common.workflow.activities.sequence.ExternalCallActivity"  initializer="com.ciecc.common.workflow.runtime.xml.CallMethodInitializer"/>
+
+</configuration>

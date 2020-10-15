@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://louis.com/workflow" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://louis.com/workflow" elementFormDefault="qualified">
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+			工作流根节点，表示一个流程集合，可以包含若干顺序流和一组状态流
+		]]></xsd:documentation>
+	</xsd:annotation>
+	<!-- ########################## 逻辑节点父类 ########################## -->
+	<xsd:complexType name="logic-base">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:element ref="echo" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:choice>
+	</xsd:complexType>
+	<!-- ########################## 非空字符串类型 ########################## -->
+	<xsd:simpleType name="not-empty-string">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1" />
+			<xsd:whiteSpace value="collapse" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	<!-- ########################## 判断类型 ########################## -->
+	<xsd:simpleType name="judge">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="true" />
+			<xsd:enumeration value="false" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	<!-- ########################## 正整数 ##############################-->
+	<xsd:simpleType name="positive-number">
+		<xsd:restriction base="xsd:integer">
+			<xsd:minExclusive value="0"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<!-- ########################## 0-正整数 ##############################-->
+	<xsd:simpleType name="positive-number-0">
+		<xsd:restriction base="xsd:integer">
+			<xsd:minInclusive value="0"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<!-- ########################## workflow ########################## -->
+	<xsd:element name="workflow">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				该节点为根节点
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element ref="state" minOccurs="0" />
+			</xsd:choice>
+			<xsd:attribute name="id" type="not-empty-string" use="required" />
+		</xsd:complexType>
+	</xsd:element>
+	<!-- ########################## state ########################## -->
+	<xsd:element name="state">
+		<xsd:complexType>
+			<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="initialize" minOccurs="0">
+					<xsd:complexType>
+						<xsd:choice minOccurs="1" maxOccurs="1">
+							<xsd:element ref="call-method"/>
+						</xsd:choice>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="target" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType mixed="true">
+						<xsd:attribute name="to" type="not-empty-string"
+							use="required" />
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="not-empty-string" use="required" />
+			<xsd:attribute name="type" use="required">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="begin" />
+						<xsd:enumeration value="process" />
+						<xsd:enumeration value="end" />
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="call-method">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				表示执行一个内部方法
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute  name="bean" type="not-empty-string" use="required"/>
+			<xsd:attribute  name="method" type="not-empty-string" use="required"/>
+			<xsd:attribute  name="types" type="not-empty-string" use="optional"/>
+			<xsd:attribute  name="arguments" type="not-empty-string" use="optional"/>
+			<xsd:attribute  name="result" type="not-empty-string" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>
