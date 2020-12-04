@@ -100,7 +100,7 @@ public class Converter {
             int index = 0;
             this.indexMapping.clear();
             for(IConverter converter: converters){
-                Type[] types = ClassReflectUtils.getGenericInterfaceType(converters, IConverter.class);
+                Type[] types = ClassReflectUtils.getGenericInterfaceType(converter, IConverter.class);
                 Class fromClass = (Class) types[0];
                 Class toClass = (Class) types[1];
                 if(this.indexMapping.containsKey(fromClass) && this.indexMapping.containsKey(toClass)){

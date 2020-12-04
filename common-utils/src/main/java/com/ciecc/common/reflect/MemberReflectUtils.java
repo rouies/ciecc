@@ -95,6 +95,20 @@ public class MemberReflectUtils<T> {
 	 * MethodName : 构造函数
 	 * MethodType : instance
 	 * Creator    : louis zhang
+	 * Function   : 通过类成员构建对象，默认不开启缓存
+	 * Arguments  : T instance  => 类成员实例
+	 * Return     : 对象实例
+	 */
+	@SuppressWarnings("unchecked")
+	public MemberReflectUtils(Class<T> clazz){
+		this.clazz = clazz;
+
+	}
+
+	/*
+	 * MethodName : 构造函数
+	 * MethodType : instance
+	 * Creator    : louis zhang
 	 * Function   : 通过类成员构建对象
 	 * Arguments  : T instance  => 类成员实例
 	 *              boolean useFieldBuffer  是否启用字段缓存
@@ -114,6 +128,19 @@ public class MemberReflectUtils<T> {
 		}
 	}
 
+	public MemberReflectUtils(Class<T> clazz,boolean useFieldBuffer,boolean useMethodBuffer){
+		this(clazz);
+		this.isFieldBuffer = useFieldBuffer;
+		this.isMethodBuffer = useMethodBuffer;
+		if(isFieldBuffer){
+			this.fieldBuffer = new ConcurrentHashMap<String, Field>(16);
+		}
+
+		if(isMethodBuffer){
+			this.methodBuffer = new ConcurrentHashMap<MethodInfo,Method>(16);
+		}
+	}
+
 	/*
 	 * MethodName : getFieldInstance
 	 * MethodType : instance
@@ -122,7 +149,7 @@ public class MemberReflectUtils<T> {
 	 * Arguments  : String fieldName  => 字段名
 	 * Return     : 字段实例
 	 */
-	private Field getFieldInstance(String fieldName) throws NoSuchFieldException, SecurityException {
+	public Field getFieldInstance(String fieldName) throws NoSuchFieldException, SecurityException {
 		Field field = null;
 		if(this.isFieldBuffer && this.fieldBuffer.containsKey(fieldName)){
 			field = this.fieldBuffer.get(fieldName);
@@ -144,7 +171,7 @@ public class MemberReflectUtils<T> {
 	 *              Class<?>...types   => 参数列表
 	 * Return     : 方法实例
 	 */
-	private Method getMethodInstance(String methodName,Class<?>...types) throws NoSuchMethodException, SecurityException {
+	public Method getMethodInstance(String methodName,Class<?>...types) throws NoSuchMethodException, SecurityException {
 		Method method = null;
 		MethodInfo info = new MethodInfo();
 		info.setMethodName(methodName);
@@ -158,6 +185,27 @@ public class MemberReflectUtils<T> {
 			}
 		}
 		return method;
+	}
+
+	/*
+	 * MethodName : getFieldType
+	 * MethodType : instance
+	 * Creator    : louis zhang
+	 * Function   : 获取字段类型
+	 * Arguments  : String fieldName  => 字段名
+	 *              Class<?>  clazz  => 字段值数据类型
+	 * Return     : 字段值
+	 */
+	public Class<?> getFieldType(String fieldName) throws ReflectException
+	{
+		try
+		{
+			return getFieldInstance(fieldName).getType();
+		}
+		catch (Exception e)
+		{
+			throw new ReflectException(e.getMessage(), e);
+		}
 	}
 
 	/*
@@ -199,6 +247,44 @@ public class MemberReflectUtils<T> {
 	}
 
 	/*
+	 * MethodName : getFieldValue
+	 * MethodType : instance
+	 * Creator    : louis zhang
+	 * Function   : 根据字段名获取字段值并转换为指定的数据类型
+	 * Arguments  : String fieldName  => 字段名
+	 *              Class<?>  clazz  => 字段值数据类型
+	 * Return     : 字段值
+	 */
+	@SuppressWarnings("unchecked")
+	public <V> V getFieldValue(String fieldName,T instance,Class<V> clazz) throws ReflectException {
+		try {
+
+			return (V) getFieldValue(fieldName,instance);
+		} catch (Exception e) {
+			throw new ReflectException(e.getMessage(),e);
+		}
+	}
+
+	/*
+	 * MethodName : getFieldValue
+	 * MethodType : instance
+	 * Creator    : louis zhang
+	 * Function   : 根据字段名获取字段值
+	 * Arguments  : String fieldName  => 字段名
+	 * Return     : 字段值
+	 */
+	public Object getFieldValue(String fieldName,T instance) throws ReflectException {
+		try {
+			Field field = this.getFieldInstance(fieldName);
+			field.setAccessible(true);
+			Object val = field.get(instance);
+			return val;
+		} catch (Exception e) {
+			throw new ReflectException(e.getMessage(),e);
+		}
+	}
+
+	/*
 	 * MethodName : setFieldValue
 	 * MethodType : instance
 	 * Creator    : louis zhang
@@ -218,6 +304,28 @@ public class MemberReflectUtils<T> {
 		} 
 	}
 
+
+
+	/*
+	 * MethodName : setFieldValue
+	 * MethodType : instance
+	 * Creator    : louis zhang
+	 * Function   : 给对象中的指定字段赋值
+	 * Arguments  : String fieldName  => 字段名
+	 *              Object value      => 字段值
+	 * Return     : void
+	 */
+	public void setFieldValue(String fieldName,T instance,Object value) throws ReflectException {
+		try {
+			Field field = this.getFieldInstance(fieldName);
+			field.setAccessible(true);
+			field.set(instance, value);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ReflectException(e.getMessage(),e);
+		}
+	}
+
 	/*
 	 * MethodName : 获取字段上指定类型的元数据
 	 * MethodType : instance
@@ -235,7 +343,7 @@ public class MemberReflectUtils<T> {
 			return result;
 		} catch (Exception e) {
 			throw new ReflectException(e.getMessage(),e);
-		} 
+		}
 	}
 
 	/*
@@ -303,6 +411,27 @@ public class MemberReflectUtils<T> {
 	 * MethodType : instance
 	 * Creator    : louis zhang
 	 * Function   : 执行类中指定方法
+	 * Arguments  : String methodName  => 方法名
+	 *              Class<?>[] types   => 方法参数类型列表
+	 *              Object[] args      => 方法参数列表
+	 * Return     : 执行结果
+	 */
+	public Object invoke(String methodName,T instance,Class<?>[] types,Object[] args) throws ReflectException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+		Method method;
+		try {
+			method = this.getMethodInstance(methodName, types);
+
+		} catch (Exception e) {
+			throw new ReflectException(e.getMessage(),e);
+		}
+		return method.invoke(instance, args);
+	}
+
+	/*
+	 * MethodName : invoke
+	 * MethodType : instance
+	 * Creator    : louis zhang
+	 * Function   : 执行类中指定方法
 	 * Arguments  : String   methodName  => 方法名
 	 *              String[] types   => 方法参数类型类路径列表
 	 *              Object[] args      => 方法参数列表
@@ -320,6 +449,35 @@ public class MemberReflectUtils<T> {
 				mtypes[i] = ClassReflectUtils.getClassFromString(types[i]);
 			}
 			result = this.invoke(methodName, mtypes, args);
+		} catch (Exception e) {
+			throw new ReflectException(e.getMessage(),e);
+		}
+		return result;
+	}
+
+
+	/*
+	 * MethodName : invoke
+	 * MethodType : instance
+	 * Creator    : louis zhang
+	 * Function   : 执行类中指定方法
+	 * Arguments  : String   methodName  => 方法名
+	 *              String[] types   => 方法参数类型类路径列表
+	 *              Object[] args      => 方法参数列表
+	 * Return     : 执行结果
+	 */
+	public Object invoke(String methodName,T instance,String[] types,Object[] args) throws ReflectException {
+		Class<?>[] mtypes = null;
+		Object result;
+		try {
+			if(types == null){
+				types = new String[0];
+			}
+			mtypes = new Class<?>[types.length];
+			for(int i=0,len = mtypes.length;i < len ;i++){
+				mtypes[i] = ClassReflectUtils.getClassFromString(types[i]);
+			}
+			result = this.invoke(methodName, instance,mtypes, args);
 		} catch (Exception e) {
 			throw new ReflectException(e.getMessage(),e);
 		}

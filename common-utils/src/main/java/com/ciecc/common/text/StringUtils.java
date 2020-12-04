@@ -1,5 +1,10 @@
 package com.ciecc.common.text;
 
+import com.ciecc.common.converter.IConverter;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+
 /*
  * Name      : StringUtils
  * Creator   : louis zhang
@@ -48,5 +53,58 @@ public class StringUtils {
 		return  result;
 	}
 
+	/*
+	 * MethodName : underlineToCamel
+	 * MethodType : static
+	 * Creator    : louis zhang
+	 * Function   : 下划线转驼峰
+	 * Arguments  : String[] param     => 输入
+	 * Return     : 结果字符串
+	 */
+	public static String underlineToCamel(String param) {
+		if (param == null || "".equals(param.trim())) {
+			return "";
+		}
+		char[] chars = param.toLowerCase().toCharArray();
+		char[] target = new char[chars.length];
+		int index = 0;
+		for (int i = 0,len = chars.length;i<len;i++){
+			if(chars[i]=='_'){
+				if(i != len -1){
+					chars[i + 1] = Character.toUpperCase(chars[i + 1]);
+				}
+			} else {
+				target[index++] = chars[i];
+			}
+		}
+		return new String(target,0,index);
+	}
+
+	/*
+	 * MethodName : camelToUnderline
+	 * MethodType : static
+	 * Creator    : louis zhang
+	 * Function   : 驼峰转下划线
+	 * Arguments  : String[] param     => 输入
+	 * Return     : 结果字符串
+	 */
+	public static String camelToUnderline(String param) {
+		if (param == null || "".equals(param.trim())) {
+			return "";
+		}
+		char[] chars = param.toCharArray();
+		StringBuilder target = new StringBuilder(chars.length + 10);
+		for (int i = 0,len = chars.length;i<len;i++){
+			if(Character.isUpperCase(chars[i])){
+				if(i != 0){
+					target.append('_');
+				}
+				target.append(Character.toLowerCase(chars[i]));
+			} else {
+				target.append(chars[i]);
+			}
+		}
+		return target.toString();
+	}
 
 }
